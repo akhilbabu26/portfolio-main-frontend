@@ -37,7 +37,7 @@ const Projects = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8080/api/projects')
+    axios.get(`${import.meta.env.VITE_API_URL}/api/projects`)
       .then(res => { setProjects(res.data); setLoading(false); })
       .catch(() => { setError('Failed to load projects.'); setLoading(false); });
   }, []);

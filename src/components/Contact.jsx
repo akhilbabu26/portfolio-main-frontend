@@ -15,7 +15,7 @@ const Contact = () => {
     e.preventDefault();
     setStatus('loading');
     try {
-      await axios.post('http://localhost:8080/api/contact', form);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/contact`, form);
       setStatus('success');
       setForm({ name: '', email: '', message: '' });
       setTimeout(() => setStatus('idle'), 6000);
