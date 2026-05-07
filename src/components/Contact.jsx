@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MdEmail, MdSend, MdCheckCircle, MdError } from 'react-icons/md';
 import { FaGithub, FaLinkedin, FaWhatsapp, FaInstagram } from 'react-icons/fa';
-import axios from 'axios';
+import emailjs from '@emailjs/browser';
 
 const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -15,13 +15,24 @@ const Contact = () => {
     e.preventDefault();
     setStatus('loading');
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/contact`, form);
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          from_name:  form.name,
+          from_email: form.email,
+          message:    form.message,
+          to_email:   'akhilbabu.golang@gmail.com',
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      );
       setStatus('success');
       setForm({ name: '', email: '', message: '' });
       setTimeout(() => setStatus('idle'), 6000);
     } catch (err) {
       setStatus('error');
-      setErrorMsg(err.response?.data?.error || 'Something went wrong. Please try again.');
+      setErrorMsg('Something went wrong. Please try again.');
+      console.error('EmailJS error:', err);
     }
   };
 

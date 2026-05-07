@@ -1,6 +1,35 @@
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+
+// ── Add photos here ──────────────────────────────────
+const PHOTOS = [
+  '/profile_4.jpeg',
+  '/profile_2.jpeg',
+  '/profile_3.jpeg',
+  '/profile_1.jpeg',
+  '/profile_5.jpeg',
+  '/profile_6.jpeg',
+  '/profile_7.jpeg',
+  '/profile_8.jpeg',
+  '/profile_9.jpeg',
+  '/profile_10.jpeg',
+  '/profile_11.jpeg',
+  
+];
+// ─────────────────────────────────────────────────────────
 
 const About = () => {
+  const [activePhoto, setActivePhoto] = useState(0);
+
+  // Auto-cycle photos every 3.5s when there are multiple
+  useEffect(() => {
+    if (PHOTOS.length <= 1) return;
+    const timer = setInterval(() => {
+      setActivePhoto(i => (i + 1) % PHOTOS.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section id="about" className="py-28 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +48,7 @@ const About = () => {
 
         {/* Two-column layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Avatar / Image card */}
+          {/* Photo Carousel */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -31,14 +60,37 @@ const About = () => {
               {/* Glowing ring */}
               <div className="absolute inset-0 rounded-3xl bg-blue-500/20 blur-2xl scale-110" />
               <div className="relative glass rounded-3xl p-1 border border-blue-500/20 glow-blue">
-                <div className="w-72 h-72 md:w-80 md:h-80 rounded-3xl bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center overflow-hidden">
-                  {/* Placeholder avatar */}
-                  <div className="text-center">
-                    <div className="text-8xl mb-4"><img src="./src/assets/profile/123.jpeg" alt="Akhil Babu" /></div>
-                    <p className="text-slate-500 text-sm">Akhil Babu</p>
-                  </div>
+                {/* Photo carousel */}
+                <div className="w-72 h-72 md:w-80 md:h-80 rounded-3xl overflow-hidden relative">
+                  {PHOTOS.map((src, i) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt={`Akhil Babu ${i + 1}`}
+                      className="absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-700"
+                      style={{ opacity: i === activePhoto ? 1 : 0 }}
+                    />
+                  ))}
                 </div>
+
+                {/* Dot indicators — only shown when multiple photos */}
+                {PHOTOS.length > 1 && (
+                  <div className="flex justify-center gap-2 pt-2 pb-1">
+                    {PHOTOS.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActivePhoto(i)}
+                        className="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        style={{
+                          background: i === activePhoto ? '#3b82f6' : 'rgba(255,255,255,0.25)',
+                          transform: i === activePhoto ? 'scale(1.4)' : 'scale(1)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
+
               {/* Floating badge */}
               <div className="absolute -bottom-4 -right-4 glass px-4 py-2 rounded-2xl border border-blue-500/20 text-sm">
                 <span className="text-slate-400 font-semibold">Full Stack Developer</span>

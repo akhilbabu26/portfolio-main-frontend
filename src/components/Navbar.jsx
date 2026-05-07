@@ -24,23 +24,24 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Active section tracking via IntersectionObserver
+  // Active section tracking via scroll position (reliable for tall sticky sections)
   useEffect(() => {
     const sectionIds = navLinks.map(l => l.href.replace('#', ''));
-    const observers = [];
 
-    sectionIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
-        { rootMargin: '-40% 0px -55% 0px', threshold: 0 }
-      );
-      obs.observe(el);
-      observers.push(obs);
-    });
+    const handleActiveSection = () => {
+      const checkAt = window.scrollY + window.innerHeight * 0.35;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sectionIds[i]);
+        if (el && el.offsetTop <= checkAt) {
+          setActiveSection(sectionIds[i]);
+          break;
+        }
+      }
+    };
 
-    return () => observers.forEach(obs => obs.disconnect());
+    window.addEventListener('scroll', handleActiveSection, { passive: true });
+    handleActiveSection();
+    return () => window.removeEventListener('scroll', handleActiveSection);
   }, []);
 
   return (

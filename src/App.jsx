@@ -1,6 +1,7 @@
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
+import LeetCode from './components/LeetCode';
 import Skills from './components/Skills';
 import Projects from './components/Projects';
 import Experience from './components/Experience';
@@ -8,7 +9,7 @@ import Contact from './components/Contact';
 
 function App() {
   return (
-    <div className="min-h-screen bg-[#060606] text-slate-50 overflow-x-hidden selection:bg-blue-500/30 selection:text-blue-200">
+    <div className="min-h-screen bg-[#060606] text-slate-50 [overflow-x:clip] selection:bg-blue-500/30 selection:text-blue-200">
       <Navbar />
       
       <main>
@@ -18,6 +19,10 @@ function App() {
         <div className="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
         <About />
+
+        <div className="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+
+        <LeetCode />
 
         <div className="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
