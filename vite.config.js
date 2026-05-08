@@ -8,13 +8,16 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Core React runtime
-          'vendor-react': ['react', 'react-dom'],
-          // Animation library
-          'vendor-motion': ['framer-motion'],
-          // Icon libraries (large — split into own chunk)
-          'vendor-icons': ['react-icons'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/framer-motion')) {
+            return 'vendor-motion';
+          }
+          if (id.includes('node_modules/react-icons')) {
+            return 'vendor-icons';
+          }
         },
       },
     },
