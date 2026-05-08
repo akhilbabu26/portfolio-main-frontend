@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 
 // ── Add photos here ──────────────────────────────────
 const PHOTOS = [
+  '/profile_4.1.jpeg',
   '/profile_4.jpeg',
-  '/profile_2.jpeg',
   '/profile_3.jpeg',
   '/profile_1.jpeg',
   '/profile_5.jpeg',
