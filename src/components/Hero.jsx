@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
 import { ArrowRight, Download } from 'lucide-react';
@@ -12,18 +12,41 @@ const Hero = () => {
     await loadSlim(engine);
   }, []);
 
+  const sectionRef = useRef(null);
+  const particlesRef = useRef(null);
+
+  // Pause particle animation when Hero is not in the viewport
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const container = particlesRef.current?.props?.container;
+        if (!entry.isIntersecting) {
+          // Pause via tsParticles container API if available
+          try { window.tsParticles?.domItem(0)?.pause?.(); } catch (_) {}
+        } else {
+          try { window.tsParticles?.domItem(0)?.play?.(); } catch (_) {}
+        }
+      },
+      { threshold: 0.05 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id="hero"
+      ref={sectionRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
       {/* Particle Background */}
       <Particles
+        ref={particlesRef}
         id="tsparticles"
         init={particlesInit}
         options={{
           background: { color: { value: 'transparent' } },
-          fpsLimit: 60,
+          fpsLimit: 40,
           interactivity: {
             events: {
               onHover: { enable: true, mode: 'repulse' },
@@ -40,7 +63,7 @@ const Hero = () => {
               color: '#3b82f6',
               distance: 150,
               enable: true,
-              opacity: 0.1,
+              opacity: 0.08,
               width: 1,
             },
             move: {
@@ -48,15 +71,15 @@ const Hero = () => {
               enable: true,
               outModes: { default: 'bounce' },
               random: false,
-              speed: 0.6,
+              speed: 0.5,
               straight: false,
             },
-            number: { density: { enable: true, area: 900 }, value: 60 },
-            opacity: { value: 0.2 },
+            number: { density: { enable: true, area: 1000 }, value: 45 },
+            opacity: { value: 0.15 },
             shape: { type: 'circle' },
-            size: { value: { min: 1, max: 3 } },
+            size: { value: { min: 1, max: 2.5 } },
           },
-          detectRetina: true,
+          detectRetina: false,
         }}
         className="absolute inset-0 z-0"
       />
@@ -138,27 +161,6 @@ const Hero = () => {
             </a>
             <a href="/cv.pdf" target="_blank" rel="noopener noreferrer" className="btn-secondary">
               Download CV <Download size={18} />
-            </a>
-          </motion.div>
-
-          {/* Social Icons */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.85, duration: 0.5 }}
-            className="flex items-center justify-center gap-4"
-          >
-            <a href="https://github.com/akhilbabu" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
-              <FaGithub size={20} />
-            </a>
-            <a href="https://linkedin.com/in/akhilbabu" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="LinkedIn">
-              <FaLinkedin size={20} />
-            </a>
-            <a href="mailto:akhil@example.com" className="social-icon" aria-label="Email">
-              <MdEmail size={20} />
-            </a>
-            <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="WhatsApp">
-              <FaWhatsapp size={20} />
             </a>
           </motion.div>
         </motion.div>

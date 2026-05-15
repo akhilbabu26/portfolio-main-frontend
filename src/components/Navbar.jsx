@@ -18,30 +18,35 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Active section tracking via scroll position (reliable for tall sticky sections)
+  // Single RAF-throttled scroll handler — avoids two separate scroll listeners
   useEffect(() => {
     const sectionIds = navLinks.map(l => l.href.replace('#', ''));
+    let rafId = null;
 
-    const handleActiveSection = () => {
-      const checkAt = window.scrollY + window.innerHeight * 0.35;
-      for (let i = sectionIds.length - 1; i >= 0; i--) {
-        const el = document.getElementById(sectionIds[i]);
-        if (el && el.offsetTop <= checkAt) {
-          setActiveSection(sectionIds[i]);
-          break;
+    const onScroll = () => {
+      if (rafId) return; // already queued
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const y = window.scrollY;
+        setScrolled(y > 40);
+
+        const checkAt = y + window.innerHeight * 0.35;
+        for (let i = sectionIds.length - 1; i >= 0; i--) {
+          const el = document.getElementById(sectionIds[i]);
+          if (el && el.offsetTop <= checkAt) {
+            setActiveSection(sectionIds[i]);
+            break;
+          }
         }
-      }
+      });
     };
 
-    window.addEventListener('scroll', handleActiveSection, { passive: true });
-    handleActiveSection();
-    return () => window.removeEventListener('scroll', handleActiveSection);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // run once on mount
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (
@@ -88,10 +93,10 @@ const Navbar = () => {
 
         {/* Desktop socials */}
         <div className="hidden md:flex items-center gap-3">
-          <a href="https://github.com/akhilbabu" target="_blank" rel="noopener noreferrer" className="social-icon"><FaGithub size={18} /></a>
-          <a href="https://linkedin.com/in/akhilbabu" target="_blank" rel="noopener noreferrer" className="social-icon"><FaLinkedin size={18} /></a>
-          <a href="mailto:akhil@example.com" className="social-icon"><MdEmail size={18} /></a>
-          <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="social-icon" style={{ color: '#25D366' }}><FaWhatsapp size={18} /></a>
+          <a href="https://github.com/akhilbabu26" target="_blank" rel="noopener noreferrer" className="social-icon"><FaGithub size={18} /></a>
+          <a href="https://www.linkedin.com/in/akhilbabu26/" target="_blank" rel="noopener noreferrer" className="social-icon"><FaLinkedin size={18} /></a>
+          <a href="mailto:akhilbabu.golang@gmail.com" className="social-icon"><MdEmail size={18} /></a>
+          <a href="https://wa.me/918590223885" target="_blank" rel="noopener noreferrer" className="social-icon" style={{ color: '#25D366' }}><FaWhatsapp size={18} /></a>
         </div>
 
         {/* Mobile menu toggle */}
@@ -138,10 +143,10 @@ const Navbar = () => {
                 Download CV
               </a>
               <div className="flex gap-4 px-4 pt-4">
-                <a href="https://github.com/akhilbabu" target="_blank" rel="noopener noreferrer" className="social-icon"><FaGithub size={18} /></a>
-                <a href="https://linkedin.com/in/akhilbabu" target="_blank" rel="noopener noreferrer" className="social-icon"><FaLinkedin size={18} /></a>
-                <a href="mailto:akhil@example.com" className="social-icon"><MdEmail size={18} /></a>
-                <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="social-icon"><FaWhatsapp size={18} /></a>
+                <a href="https://github.com/akhilbabu26" target="_blank" rel="noopener noreferrer" className="social-icon"><FaGithub size={18} /></a>
+                <a href="https://www.linkedin.com/in/akhilbabu26/" target="_blank" rel="noopener noreferrer" className="social-icon"><FaLinkedin size={18} /></a>
+                <a href="mailto:akhilbabu.golang@gmail.com" className="social-icon"><MdEmail size={18} /></a>
+                <a href="https://wa.me/918590223885" target="_blank" rel="noopener noreferrer" className="social-icon"><FaWhatsapp size={18} /></a>
               </div>
             </div>
           </motion.div>

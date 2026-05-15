@@ -27,7 +27,7 @@ body {
 }
 
 html { scroll-behavior: smooth; }
-section { scroll-margin-top: 72px; }
+
 
 /* ===================== SCROLLBAR ===================== */
 ::-webkit-scrollbar { width: 6px; }
@@ -228,4 +228,24 @@ section { scroll-margin-top: 72px; }
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* ===================== PERFORMANCE ===================== */
+/* Promote navbar and footer to their own composite layer */
+nav { will-change: transform; }
+
+/* Isolate each section's layout so a reflow in one
+   doesn't cascade to the entire document */
+section {
+  scroll-margin-top: 72px;
+  contain: layout style;
+}
+
+/* GPU-accelerate the marquee strip */
+[style*="marquee-scroll"] { will-change: transform; }
+
+/* Reduce paint cost of large blur orbs by isolating them */
+.blur-orb {
+  will-change: opacity;
+  contain: strict;
 }

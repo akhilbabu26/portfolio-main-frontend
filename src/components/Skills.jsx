@@ -36,21 +36,17 @@ const categories = [
 
 const allSkills = categories.flatMap(c => c.skills);
 
-/* ── Value system: 1=smallest, 4=full ── */
-// Pixel size of each value bubble
 const SIZE_OF = { 1: 26, 2: 38, 3: 50, 4: 62 };
-// Float amplitude scale by value
-const AMP_OF = { 1: 0.28, 2: 0.5, 3: 0.75, 4: 1.0 };
-// Icon size by value
+const AMP_OF  = { 1: 0.28, 2: 0.5, 3: 0.75, 4: 1.0 };
 const ICON_OF = { 1: 10, 2: 14, 3: 18, 4: 22 };
 
 let _uid = 0;
-const uid = () => ++_uid;
-const rnd = (a, b) => Math.random() * (b - a) + a;
+const uid  = () => ++_uid;
+const rnd  = (a, b) => Math.random() * (b - a) + a;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 function buildFloat(seed, value) {
-  const s = seed * 137.5;
+  const s   = seed * 137.5;
   const amp = AMP_OF[value] ?? 1;
   return {
     x: [Math.sin(s * 0.05) * 50 * amp, Math.sin((s + 60) * 0.05) * 70 * amp, Math.sin((s + 120) * 0.05) * 30 * amp, Math.sin((s + 180) * 0.05) * 60 * amp, Math.sin(s * 0.05) * 50 * amp],
@@ -66,7 +62,6 @@ function makeInitial(skills) {
   }));
 }
 
-/* Binary split: 4→2+2, 2→1+1 */
 function splitBubble(parent) {
   const half = parent.value / 2;
   const sp   = parent.value === 4 ? 10 : 6;
@@ -77,17 +72,25 @@ function splitBubble(parent) {
 }
 
 /* ── Bubble component ── */
-const Bubble = ({ bubble, onSplit, circleRef, containerRef, onDragEnd }) => {
+const Bubble = ({ bubble, onSplit, circleRef, containerRef, onDragEnd, isVisible }) => {
   const [dragging, setDragging] = useState(false);
   const { skill, value, x, y, seed, dur, repositioned } = bubble;
-  const Icon = skill.icon;
-  const size = SIZE_OF[value] ?? SIZE_OF[1];
-  const iconSz = ICON_OF[value] ?? ICON_OF[1];
-  const canSplit = value === 4 || value === 2; // both can split (4→2+2, 2→1+1)
+  const Icon    = skill.icon;
+  const size    = SIZE_OF[value] ?? SIZE_OF[1];
+  const iconSz  = ICON_OF[value] ?? ICON_OF[1];
+  const canSplit = value === 4 || value === 2;
 
   const handleClick = useCallback(() => {
     if (!dragging && canSplit) onSplit(bubble);
   }, [dragging, canSplit, bubble, onSplit]);
+
+  // Float animation — paused when section is off-screen to free up the main thread
+  const floatAnimate = isVisible
+    ? (dragging ? { x: 0, y: 0 } : buildFloat(seed, value))
+    : { x: 0, y: 0 };
+  const floatTransition = isVisible && !dragging
+    ? { duration: dur, repeat: Infinity, ease: 'easeInOut', repeatType: 'loop' }
+    : { duration: 0.1 };
 
   return (
     <motion.div
@@ -98,18 +101,23 @@ const Bubble = ({ bubble, onSplit, circleRef, containerRef, onDragEnd }) => {
       onDragStart={() => setDragging(true)}
       onDragEnd={(e) => { setDragging(false); onDragEnd(bubble, e); }}
       className="absolute flex flex-col items-center group"
-      style={{ left: `${x}%`, top: `${y}%`, zIndex: dragging ? 50 : 2, cursor: dragging ? 'grabbing' : 'grab' }}
+      style={{
+        left: `${x}%`, top: `${y}%`,
+        zIndex: dragging ? 50 : 2,
+        cursor: dragging ? 'grabbing' : 'grab',
+        willChange: 'transform', // GPU-composited layer → no layout reflow on move
+      }}
       initial={repositioned ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0, opacity: 0, transition: { duration: 0.18 } }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       onClick={handleClick}
       whileDrag={{ scale: 1.2 }}
-      title={canSplit ? 'Click to split into 4 · Drag to fuse' : `Value: ${value}/4 · Drag to fuse`}
+      title={canSplit ? 'Click to split · Drag to fuse' : `Value: ${value}/4 · Drag to fuse`}
     >
       <motion.div
-        animate={dragging ? { x: 0, y: 0 } : buildFloat(seed, value)}
-        transition={dragging ? { duration: 0.1 } : { duration: dur, repeat: Infinity, ease: 'easeInOut', repeatType: 'loop' }}
+        animate={floatAnimate}
+        transition={floatTransition}
         className="flex flex-col items-center"
         whileHover={!dragging ? { scale: 1.2, transition: { duration: 0.15 } } : {}}
       >
@@ -130,7 +138,6 @@ const Bubble = ({ bubble, onSplit, circleRef, containerRef, onDragEnd }) => {
         >
           <Icon size={iconSz} />
 
-          {/* Value indicator dots (value < 4) */}
           {value < 4 && (
             <div className="absolute -bottom-3 flex gap-0.5">
               {[...Array(value)].map((_, i) => (
@@ -139,20 +146,17 @@ const Bubble = ({ bubble, onSplit, circleRef, containerRef, onDragEnd }) => {
             </div>
           )}
 
-          {/* Split hint ring for value-4 */}
           {canSplit && !dragging && (
             <div className="absolute inset-0 rounded-full border-2 border-dashed opacity-0 group-hover:opacity-40 transition-opacity duration-300"
               style={{ borderColor: skill.color }} />
           )}
 
-          {/* Drag pulse */}
           {dragging && (
             <div className="absolute inset-[-6px] rounded-full border-2 opacity-50 animate-ping"
               style={{ borderColor: skill.color }} />
           )}
         </div>
 
-        {/* Name only for value-4 (full bubble) */}
         {value === 4 && (
           <span className="mt-2 text-[10px] font-semibold whitespace-nowrap select-none"
             style={{ color: skill.color, textShadow: `0 0 8px ${skill.color}80` }}>
@@ -165,45 +169,51 @@ const Bubble = ({ bubble, onSplit, circleRef, containerRef, onDragEnd }) => {
 };
 
 /* ── Floating Space ── */
-const FloatingSpace = ({ category }) => {
-  const [bubbles, setBubbles] = useState(() => makeInitial(category.skills));
-  const containerRef = useRef(null);
-  const circleRefs = useRef({});
-  const bubblesRef = useRef(bubbles);
-  useEffect(() => { bubblesRef.current = bubbles; }, [bubbles]);
+const FloatingSpace = ({ category, isVisible }) => {
+  const [bubbles, setBubbles]   = useState(() => makeInitial(category.skills));
+  const containerRef            = useRef(null);
+  const circleRefs              = useRef({});
+  const bubblesRef              = useRef(bubbles);
+  const isVisibleRef            = useRef(isVisible);
 
-  /* Binary split */
+  useEffect(() => { bubblesRef.current = bubbles; }, [bubbles]);
+  useEffect(() => { isVisibleRef.current = isVisible; }, [isVisible]);
+
   const handleSplit = useCallback((b) => {
     setBubbles(prev => [...prev.filter(x => x.id !== b.id), ...splitBubble(b)]);
   }, []);
 
-  /* Update position after drag (new id resets Framer's accumulated transform) */
   const handleDragEnd = useCallback((bubble) => {
     const container = containerRef.current;
     if (!container) return;
     const cRect = container.getBoundingClientRect();
-    const el = circleRefs.current[bubble.id];
+    const el    = circleRefs.current[bubble.id];
     if (!el) return;
-    const r = el.getBoundingClientRect();
+    const r    = el.getBoundingClientRect();
     const newX = clamp(((r.left + r.width / 2 - cRect.left) / cRect.width) * 100, 4, 82);
-    const newY = clamp(((r.top + r.height / 2 - cRect.top) / cRect.height) * 100, 4, 76);
+    const newY = clamp(((r.top  + r.height / 2 - cRect.top) / cRect.height) * 100, 4, 76);
     setBubbles(prev => prev.map(b =>
       b.id === bubble.id ? { ...b, id: uid(), x: newX, y: newY, repositioned: true } : b
     ));
   }, []);
 
-  /* RAF collision → value-addition fusion */
+  /* RAF collision loop — only runs when section is visible */
   useEffect(() => {
     let rafId, last = 0;
     const loop = (t) => {
       rafId = requestAnimationFrame(loop);
-      if (t - last < 120) return;
+
+      // Skip entirely when section is scrolled out of view
+      if (!isVisibleRef.current) return;
+
+      // Throttle to ~167ms (6fps for collision detection is plenty)
+      if (t - last < 167) return;
       last = t;
+
       const container = containerRef.current;
       if (!container) return;
       const cRect = container.getBoundingClientRect();
-      const bubs = bubblesRef.current;
-      // Only fragment bubbles (value < 4) can fuse
+      const bubs  = bubblesRef.current;
       const frags = bubs.filter(b => b.value < 4);
       if (frags.length < 2) return;
 
@@ -220,13 +230,11 @@ const FloatingSpace = ({ category }) => {
         for (let j = i + 1; j < frags.length; j++) {
           const b1 = frags[i], b2 = frags[j];
           if (b1.skill.name !== b2.skill.name) continue;
-          // Additive fusion: any combo that sums to ≤ 4 (1+1=2, 1+2=3, 2+2=4, 3+1=4)
           if (b1.value + b2.value > 4) continue;
           if (used.has(b1.id) || used.has(b2.id)) continue;
           const p1 = pos[b1.id], p2 = pos[b2.id];
           if (!p1 || !p2) continue;
           const dx = p1.cx - p2.cx, dy = p1.cy - p2.cy;
-          // Generous threshold — especially small bubbles
           const thresh = (p1.rad + p2.rad) * 1.8;
           if (Math.sqrt(dx * dx + dy * dy) < thresh) {
             toFuse.push([b1, b2]); used.add(b1.id); used.add(b2.id);
@@ -239,7 +247,7 @@ const FloatingSpace = ({ category }) => {
           let next = [...prev];
           toFuse.forEach(([b1, b2]) => {
             next = next.filter(b => b.id !== b1.id && b.id !== b2.id);
-            const newVal = b1.value + b2.value; // 1+1=2, 1+2=3, 2+2=4
+            const newVal = b1.value + b2.value;
             next.push({
               id: uid(), skill: b1.skill, value: newVal,
               x: clamp((b1.x + b2.x) / 2, 8, 75),
@@ -279,6 +287,7 @@ const FloatingSpace = ({ category }) => {
             onSplit={handleSplit}
             containerRef={containerRef}
             onDragEnd={handleDragEnd}
+            isVisible={isVisible}
             circleRef={el => {
               if (el) circleRefs.current[bubble.id] = el;
               else delete circleRefs.current[bubble.id];
@@ -312,7 +321,7 @@ const Marquee = () => {
           <span className="text-slate-400 text-xs tracking-widest uppercase font-medium">Hover to explore</span>
         </div>
       )}
-      <div className="flex gap-4 w-max" style={{ animation: 'marquee-scroll 32s linear infinite', animationPlayState: hovered ? 'paused' : 'running' }}>
+      <div className="flex gap-4 w-max" style={{ animation: 'marquee-scroll 32s linear infinite', animationPlayState: hovered ? 'paused' : 'running', willChange: 'transform' }}>
         {doubled.map((skill, i) => {
           const Icon = skill.icon;
           return (
@@ -328,30 +337,45 @@ const Marquee = () => {
 };
 
 /* ── Main ── */
-const Skills = () => (
-  <section id="skills" className="py-28 relative">
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-600/4 rounded-full blur-[140px] pointer-events-none" />
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-14">
-        <span className="section-tag">Technical Skills</span>
-        <h2 className="section-heading">My Tech Stack</h2>
+const Skills = () => {
+  const sectionRef  = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // IntersectionObserver → pause all animations when Skills is off-screen
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.05 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section id="skills" ref={sectionRef} className="py-28 relative">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-600/4 rounded-full blur-[140px] pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-14">
+          <span className="section-tag">Technical Skills</span>
+          <h2 className="section-heading">My Tech Stack</h2>
           <p className="text-slate-500 mt-3 max-w-lg mx-auto text-sm">
-          🖱 Click bubble → 4 fragments · Drag to fuse: 1+1=2, 1+2=3, 2+2=4
-        </p>
-        <div className="w-16 h-1 bg-blue-500 rounded-full mx-auto mt-4" />
-      </motion.div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {categories.map((cat, i) => (
-          <motion.div key={cat.label} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: i * 0.1 }}>
-            <FloatingSpace category={cat} />
-          </motion.div>
-        ))}
+            🖱 Click bubble → 4 fragments · Drag to fuse: 1+1=2, 1+2=3, 2+2=4
+          </p>
+          <div className="w-16 h-1 bg-blue-500 rounded-full mx-auto mt-4" />
+        </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {categories.map((cat, i) => (
+            <motion.div key={cat.label} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: i * 0.1 }}>
+              <FloatingSpace category={cat} isVisible={isVisible} />
+            </motion.div>
+          ))}
+        </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
+          <Marquee />
+        </motion.div>
       </div>
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
-        <Marquee />
-      </motion.div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default Skills;

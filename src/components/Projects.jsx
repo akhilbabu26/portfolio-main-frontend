@@ -20,32 +20,32 @@ const PROJECTS = [
   },
   {
     id: 2,
-    title: 'Task Manager',
-    subtitle: 'Real-Time Collaboration Tool',
+    title: 'GO-CALCULATOR',
+    subtitle: 'A simple calculator using REACT JS and JAVASCRIPT ',
     description:
-      'A collaborative task management system with real-time updates via WebSockets, Redis pub/sub for live notifications, and a clean REST API for task CRUD operations.',
-    stack: ['Go', 'Gin', 'Redis', 'WebSockets'],
-    github: 'https://github.com/akhil-babu/task-manager',
-    demo: null,
-    status: 'In Progress',
+      'A simple calculator using REACT JS and JAVASCRIPT .',
+    stack: ['REACT JS', 'JAVASCRIPT', 'CSS'],
+    github: 'https://github.com/akhilbabu26/go-calculator',
+    demo: 'https://go-calculator-nye4wg7co-akhil-babus-projects.vercel.app/',
+    status: 'Completed',
     accent: '#7c3aed',
-    images: ['/project_taskmanager.png'],  // add more: ['/img1.png', '/img2.png']
+    images: ['/go-cal2.png','go-calc-1.png'],  // add more: ['/img1.png', '/img2.png']
     num: '02',
   },
-  {
-    id: 3,
-    title: 'Portfolio Website',
-    subtitle: 'Full-Stack Developer Portfolio',
-    description:
-      'This very site — a modern full-stack portfolio with an interactive physics-based skills section, LeetCode stats dashboard, and Go backend for the contact form.',
-    stack: ['React', 'Framer Motion', 'Go', 'Gin', 'Tailwind CSS'],
-    github: 'https://github.com/akhilbabu26/portfolio-main-frontend',
-    demo: 'https://portfolio-main-frontend.vercel.app/',
-    status: 'Completed',
-    accent: '#10b981',
-    images: ['/project_portfolio.png'],  // add more: ['/img1.png', '/img2.png']
-    num: '03',
-  },
+  // {
+  //   id: 3,
+  //   title: 'Portfolio Website',
+  //   subtitle: 'Full-Stack Developer Portfolio',
+  //   description:
+  //     'This very site — a modern full-stack portfolio with an interactive physics-based skills section, LeetCode stats dashboard, and Go backend for the contact form.',
+  //   stack: ['React', 'Framer Motion', 'Go', 'Gin', 'Tailwind CSS'],
+  //   github: 'https://github.com/akhilbabu26/portfolio-main-frontend',
+  //   demo: 'https://portfolio-main-frontend.vercel.app/',
+  //   status: 'Completed',
+  //   accent: '#10b981',
+  //   images: ['/project_portfolio.png'],  // add more: ['/img1.png', '/img2.png']
+  //   num: '03',
+  // },
 ];
 
 const N = PROJECTS.length;
